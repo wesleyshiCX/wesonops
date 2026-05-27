@@ -37,14 +37,14 @@ export default function Home() {
               An agentic workflow that translates raw tickets into audit-ready RCA documents. Enforces data integrity and SOC2 compliance via a gatekeeping architecture.
             </p>
             <a 
-              href="https://auditor.wesonops.com" // TODO: Update this when deployed
+              href="#" // TODO: Update this when deployed
               target="_blank" 
               className="inline-block bg-[#3a2a1a] text-white px-6 py-2 rounded hover:opacity-90 transition-opacity font-medium text-center"
             >
               Launch Agent
             </a>
           </div>
-                    <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="3fc147ca-0eda-42d1-ad0d-07afe775885e"></script>
+            <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="3fc147ca-0eda-42d1-ad0d-07afe775885e"></script>
         </section>
 
         {/* Skills/Focus Areas */}
