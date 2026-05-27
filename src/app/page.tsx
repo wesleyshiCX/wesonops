@@ -44,6 +44,7 @@ export default function Home() {
               Launch Agent
             </a>
           </div>
+                    <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="3fc147ca-0eda-42d1-ad0d-07afe775885e"></script>
         </section>
 
         {/* Skills/Focus Areas */}
