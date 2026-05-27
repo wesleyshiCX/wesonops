@@ -41,7 +41,7 @@ export default function Home() {
               target="_blank" 
               className="inline-block bg-[#3a2a1a] text-white px-6 py-2 rounded hover:opacity-90 transition-opacity font-medium text-center"
             >
-              Launch Agent
+              Demo Coming Soon!
             </a>
           </div>
             <script async src="https://subscribe-forms.beehiiv.com/v3/loader.js" data-beehiiv-form="3fc147ca-0eda-42d1-ad0d-07afe775885e"></script>
