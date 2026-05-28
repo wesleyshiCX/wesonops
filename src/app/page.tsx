@@ -58,7 +58,7 @@ export default function Home() {
                 An agentic workflow that translates raw tickets into audit-ready RCA documents. Enforces data integrity and SOC2 compliance via a gatekeeping architecture.
               </p>
               <a 
-                href="https://www.youtube.com" // Replace with your video walkthrough or Loom
+                href="#" 
                 target="_blank" 
                 rel="noreferrer"
                 className="inline-block bg-[#3a2a1a] text-[#f5f1eb] px-6 py-2.5 rounded hover:opacity-90 transition-opacity font-medium text-center text-sm"
