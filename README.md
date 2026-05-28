@@ -2,6 +2,8 @@
 
 > Frameworks and working tools for building modern support organizations.
 
+🔗 **Live tools:** [wesonops.com](https://wesonops.com)
+
 Opinionated, AI-first, and built from the field. Authored by a 
 Director of Support who got tired of rebuilding the same models and 
 decks at every company.
@@ -10,7 +12,30 @@ decks at every company.
 
 ## Tools
 
-### 🔍 SLA RCA Auditor
+### 🧮 LLM ROI Modeler — *Live*
+**A CFO-grade strategy model for AI agent budgets.** Calculates 
+support-op token economics, engine latency matrices, and escape 
+hand-off taxes to build defensible deflection investment cases.
+
+Vendor pitches give you deflection rate. Finance asks for cost per 
+deflected ticket. Engineering asks which model. This modeler 
+unifies all three views into a single decision artifact.
+
+**What it models:**
+- Token economics across frontier and open-source models
+- Latency-vs-cost tradeoff matrices
+- **Escape hand-off tax** — the hidden cost of failed deflections 
+  that escalate angrier than they started
+- Break-even deflection rate vs. fully-loaded agent cost
+- Sensitivity analysis on volume and deflection-rate shifts
+
+🔗 **Try it:** [https://www.wesonops.com/tools/llm-cost-calculator](https://www.wesonops.com/tools/llm-cost-calculator) 
+
+![LLM ROI Modeler](./docs/LLM-cost-deflection-screenshot.png)
+
+---
+
+### 🔍 SLA RCA Auditor — *Demo coming soon*
 **An agentic workflow that translates raw tickets into audit-ready 
 RCA documents.** Enforces data integrity and SOC2 compliance via a 
 gatekeeping architecture.
@@ -25,42 +50,9 @@ a defensible draft to a human gate.
 evidence chains. A gatekeeping architecture leaves an audit trail — 
 which is the whole point in a SOC2 context.
 
-![SLA RCA Auditor](./docs/rca-auditor.png)
+📹 **Walkthrough demo + early access:** [wesonops.com/auditor](https://wesonops.com/auditor) 
 
-➡️ [Tool details & architecture](./tools/sla-rca-auditor)
-
----
-
-### 🧮 LLM ROI Modeler
-**A CFO-grade strategy model for AI agent budgets.** Calculates 
-support-op token economics, engine latency matrices, and escape 
-hand-off taxes to build defensible deflection investment cases.
-
-Vendor pitches give you deflection rate. Finance asks for cost per 
-deflected ticket. Engineering asks which model. This modeler 
-unifies all three views into a single decision artifact.
-
-**What it models:**
-- Token economics across GPT-4o, Claude Sonnet, Llama 3, and 
-  self-hosted options
-- Latency-vs-cost tradeoff matrices
-- **Escape hand-off tax** — the hidden cost of failed deflections 
-  that escalate angrier than they started
-- Break-even deflection rate vs. fully-loaded agent cost
-- Sensitivity analysis on volume and deflection-rate shifts
-
-![LLM ROI Modeler](./docs/roi-modeler.png)
-
-➡️ [Tool details & methodology](./tools/llm-roi-modeler)
-
----
-
-## Frameworks
-
-- **Tiered Support Models** — when Tier 1–3 works, when it doesn't
-- **AI-First Support Workflows** — practical patterns for deflection, 
-  summarization, and agent assist
-- **Metrics That Matter** — moving past CSAT-only thinking
+![SLA RCA Auditor Architecture](./docs/rca-auditor.png)
 
 ---
 
@@ -73,10 +65,12 @@ unifies all three views into a single decision artifact.
 
 ## Status
 
-Active. Tools are v0.1 — usable, opinionated, and improving.
+- **LLM ROI Modeler:** Live at [wesonops.com](https://wesonops.com)
+- **SLA RCA Auditor:** Architecture complete; demo + waitlist live; 
+  full release pending usage cost model
 
 ## Author
 
 Built by **[Wes Shi](https://github.com/wesleyshiCX)** — support 
-leadership, AI-first ops. Currently exploring Director / Head of 
+leadership, Purposeful AIOPs. Currently exploring Director / Head of 
 Support roles in SaaS, AI, and developer tooling.
