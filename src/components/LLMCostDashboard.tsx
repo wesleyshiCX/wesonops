@@ -185,7 +185,7 @@ useEffect(() => {
             LLM Cost-to-Deflection Strategy Studio
           </h1>
           <p className="text-[#3a2a1a]/70 text-sm mt-1 max-w-2xl">
-            A dynamic modeling suite translating ticket volumes, engineering latency ratios, and failure escapes into a clean corporate ledger.
+            A dynamic modeling suite translating ticket volumes, engineering latency ratios, and failure escapes into a clean reporting ledger.
           </p>
         </div>
         <div className="flex bg-[#f5f1eb] rounded-lg p-3 border border-[#3a2a1a]/10 text-xs max-w-sm text-[#3a2a1a]/85">
