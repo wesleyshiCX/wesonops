@@ -38,7 +38,7 @@ export default function Home() {
             {/* NEW: LLM Cost Dashboard Card */}
             <div className="bg-white border border-[#264653]/30 p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col border-t-4 border-[#264653]">
               <h2 className="text-xs font-bold uppercase tracking-widest text-[#264653] mb-2 font-mono">Interactive Model</h2>
-              <h3 className="text-2xl font-semibold mb-4 text-[#3a2a1a]">LLM ROI Modeler</h3>
+              <h3 className="text-2xl font-semibold mb-4 text-[#3a2a1a]">Cost of Deflection Modeler</h3>
               <p className="mb-6 text-sm opacity-80 flex-grow">
                 A CFO-grade strategy model calculating support-op tokens, engine latency matrices, and escape hand-off taxes to build defensible AI agent budgets.
               </p>
