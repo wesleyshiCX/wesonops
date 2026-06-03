@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wes on Ops
 
-## Getting Started
+> Frameworks and working tools for building modern support organizations.
 
-First, run the development server:
+🔗 **Live tools:** [wesonops.com](https://wesonops.com)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Opinionated, AI-first, and built from the field. Authored by a 
+Director of Support who got tired of rebuilding the same models and 
+decks at every company.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tools
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🧮 LLM ROI Modeler — *Live*
+**A CFO-grade strategy model for AI agent budgets.** Calculates 
+support-op token economics, engine latency matrices, and escape 
+hand-off taxes to build defensible deflection investment cases.
 
-## Learn More
+Vendor pitches give you deflection rate. Finance asks for cost per 
+deflected ticket. Engineering asks which model. This modeler 
+unifies all three views into a single decision artifact.
 
-To learn more about Next.js, take a look at the following resources:
+**What it models:**
+- Token economics across frontier and open-source models
+- Latency-vs-cost tradeoff matrices
+- **Escape hand-off tax** — the hidden cost of failed deflections 
+  that escalate angrier than they started
+- Break-even deflection rate vs. fully-loaded agent cost
+- Sensitivity analysis on volume and deflection-rate shifts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+🔗 **Try it:** [https://www.wesonops.com/tools/llm-cost-calculator](https://www.wesonops.com/tools/llm-cost-calculator) 
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+![LLM ROI Modeler](./docs/LLM-cost-deflection-screenshot.png)
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 🔍 SLA RCA Auditor — *Demo coming soon*
+**An agentic workflow that translates raw tickets into audit-ready 
+RCA documents.** Enforces data integrity and SOC2 compliance via a 
+gatekeeping architecture.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built for support orgs operating under SOC2 CC7 controls where every 
+SLA breach triggers the same painful loop: pull ticket data, 
+reconstruct timeline, draft RCA in audit-acceptable format, route 
+for review. The Auditor automates the first three steps and routes 
+a defensible draft to a human gate.
+
+**Key design choice:** agentic, not single-shot LLM. RCAs need 
+evidence chains. A gatekeeping architecture leaves an audit trail — 
+which is the whole point in a SOC2 context.
+
+📹 **Walkthrough demo + early access:** [wesonops.com/auditor](https://wesonops.com/auditor) 
+
+![SLA RCA Auditor Architecture](./docs/rca-auditor.png)
+
+---
+
+## Related Work
+
+- **[cxdebt.com](https://cxdebt.com)** — flagship calculator for 
+  quantifying CX debt. ([repo](https://github.com/wesleyshiCX/cxdebt))
+
+---
+
+## Status
+
+- **LLM ROI Modeler:** Live at [wesonops.com](https://wesonops.com)
+- **SLA RCA Auditor:** Architecture complete; demo + waitlist live; 
+  full release pending usage cost model
+
+## Author
+
+Built by **[Wes Shi](https://github.com/wesleyshiCX)** — support 
+leadership, Purposeful AIOPs. Currently exploring Director / Head of 
+Support roles in SaaS, AI, and developer tooling.
