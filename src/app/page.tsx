@@ -66,6 +66,20 @@ export default function Home() {
                 Watch the Demo
               </a>
             </div>
+            {/* Job Search OS Card */}
+            <div className="bg-white border border-[#3a2a1a]/10 p-8 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col border-t-4 border-[#06c3a]">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#06c3a] mb-2 font-mono">Open Source Tool</h2>
+              <h3 className="text-2xl font-semibold mb-4 text-[#3a2a1a]">Job Search OS</h3>
+              <p className="mb-6 text-sm opacity-80 flex-grow">
+                An AI-powered workspace for active job seekers. Manage applications, tailor resumes via embeddings, and track recruiter interactions. Fork & deploy on Vercel.
+              </p>
+              <Link 
+                href="/tools/job-search-os" 
+                className="inline-block bg-[#3a2a1a] text-[#f5f1eb] px-6 py-2.5 rounded hover:opacity-90 transition-opacity font-medium text-center text-sm"
+              >
+                View Project
+              </Link>
+            </div>
 
           </div>
         </section>
