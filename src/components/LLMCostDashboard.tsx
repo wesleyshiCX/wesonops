@@ -185,7 +185,7 @@ const chartCurrencyFormatter = (
   const num = typeof value === 'number' ? value : Number(value ?? 0);
   return [`$${num.toLocaleString()}`, ''];
 };
-========================
+
 // ============================================================================
 // SHARED CHART HELPERS
 // Recharts internally types array values as readonly. The formatter must
