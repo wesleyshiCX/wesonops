@@ -169,17 +169,377 @@ const SCENARIO_MULTIPLIERS = {
 
 // ============================================================================
 // SHARED CHART HELPERS
-// Recharts types value as ValueType | undefined. This helper provides a
-// null-safe currency formatter compatible with all Tooltip formatter props.
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
 // ============================================================================
 
-type RechartsValueType = number | string | Array<number | string> | undefined;
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
 
-/**
- * chartCurrencyFormatter
- * Safe currency formatter for all Recharts Tooltip formatter props.
- * Guards against undefined values passed by Recharts internal typing.
- */
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+========================
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+helper provides a
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+ltip formatter props.
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+========================
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+ | string> | undefined;
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+matter props.
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+nternal typing.
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+r(value ?? 0);
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SHARED CHART HELPERS
+// Recharts internally types array values as readonly. The formatter must
+// accept ReadonlyArray to satisfy the Formatter<ValueType, NameType> constraint.
+// ============================================================================
+
+type RechartsValueType =
+  | number
+  | string
+  | readonly (string | number)[]
+  | undefined;
+
 const chartCurrencyFormatter = (
   value: RechartsValueType
 ): [string, string] => {
