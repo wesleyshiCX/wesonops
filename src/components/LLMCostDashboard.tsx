@@ -18,8 +18,6 @@ import {
   Users,
   Shield,
   BarChart2,
-  ToggleLeft,
-  ToggleRight,
   ChevronDown,
   ChevronUp,
   Activity,
@@ -41,7 +39,6 @@ import {
   Scatter,
   ZAxis,
   LabelList,
-  ReferenceLine,
 } from 'recharts';
 
 // ============================================================================
@@ -57,74 +54,56 @@ interface LLMModel {
   tier: 'Tier 1 (Fast/Cheap)' | 'Tier 2 (Balanced)' | 'Tier 3 (Reasoning/Complex)';
 }
 
-/** All user-controlled inputs for the computation engine */
 interface DashboardInputs {
-  // Core Operations
   ticketVolume: number;
   costPerLiveTicket: number;
   deflectionGoal: number;
   selectedModelName: string;
-  // Token Simulation
   avgPromptTokens: number;
   avgCompletionTokens: number;
   avgTurnsPerResolved: number;
   avgTurnsBeforeEscalation: number;
-  // Platform Costs
   monthlyPlatformFee: number;
   implementationCost: number;
-  // TEI: Churn Impact Inputs
   customerLifetimeValue: number;
-  baselineChurnRate: number;       // e.g. 0.05 = 5%
-  resolutionSatisfactionScore: number; // e.g. 0.85 = 85% satisfaction
-  // TEI: Engineering Reinvestment
-  avgHandlingTimeMinutes: number;  // Minutes saved per deflected ticket
-  internalDevHourlyRate: number;   // Fully-loaded developer hourly rate
-  productiveHoursPerMonth: number; // Standard = 160
-  // TCO: Production Infrastructure Costs (monthly)
-  piiRedactionCost: number;        // PII/security layer tooling
-  observabilityCost: number;       // LangSmith / logging observability
-  haFallbackCost: number;          // High-availability secondary model cost
-  // Sensitivity Engine
-  accuracyVariancePct: number;     // +/- percentage shift in deflection rate (stress test)
-  churnSensitivity: number;        // Multiplier on CLV churn calc (0.5x to 2x)
+  baselineChurnRate: number;
+  resolutionSatisfactionScore: number;
+  avgHandlingTimeMinutes: number;
+  internalDevHourlyRate: number;
+  productiveHoursPerMonth: number;
+  piiRedactionCost: number;
+  observabilityCost: number;
+  haFallbackCost: number;
+  accuracyVariancePct: number;
+  churnSensitivity: number;
   projectionMode: 'conservative' | 'base' | 'optimistic';
 }
 
-/** All computed output values from the financial engine */
 interface ComputedFinancials {
-  // Volume Metrics
   targetDeflections: number;
   targetEscalations: number;
-  adjustedDeflections: number;      // Sensitivity-adjusted deflection count
-  // Token Cost Layer
+  adjustedDeflections: number;
   successfulTokensCost: number;
   nonDeflectedSunkTokensCost: number;
   monthlyTotalTokenSpent: number;
-  // Infrastructure & Platform Costs
-  totalMonthlyInfraCost: number;    // Platform + PII + Observability + HA
-  totalMonthlyAICost: number;       // Token + all infrastructure
-  // Human Cost Layer
+  totalMonthlyInfraCost: number;
+  totalMonthlyAICost: number;
   pureHumanCost: number;
   hybridHumanCost: number;
   totalHybridCost: number;
-  // Primary Financial Outputs
   monthlySavings: number;
   annualSavings: number;
   rawRoiPct: number;
   trueLoadedCostPerDeflection: number;
   breakEvenMonths: number;
-  // TEI: Churn Impact (Financial Projection)
-  churnSavedRevenue: number;        // $ value of churn prevented
+  churnSavedRevenue: number;
   annualChurnSavedRevenue: number;
-  // TEI: Engineering Reinvestment (Operational Metric)
   monthlyManualHoursSaved: number;
-  ftesReclaimed: number;            // Engineering capacity recaptured
-  engineeringOpportunityCost: number; // $ value of reclaimed dev capacity
-  // TEI: Total Economic Impact (Holistic)
+  ftesReclaimed: number;
+  engineeringOpportunityCost: number;
   totalMonthlyEconomicValue: number;
   totalAnnualEconomicValue: number;
-  riskAdjustedRoi: number;          // ROI factoring in sensitivity variance
-  // Composite TCO Infrastructure
+  riskAdjustedRoi: number;
   monthlyInfraBreakdown: {
     platform: number;
     piiRedaction: number;
@@ -137,7 +116,6 @@ interface ComputedFinancials {
 // SECTION 2: CONSTANTS & MODEL REGISTRY
 // ============================================================================
 
-/** 2026 API pricing registry per 1M tokens */
 const LLM_MODELS: LLMModel[] = [
   {
     name: 'Gemini 1.5 Flash',
@@ -181,31 +159,38 @@ const LLM_MODELS: LLMModel[] = [
   },
 ];
 
-/** Productive engineering hours per month (industry standard) */
 const PRODUCTIVE_HOURS_DEFAULT = 160;
 
-/** Conservative scenario applies a penalty multiplier to deflection rate */
 const SCENARIO_MULTIPLIERS = {
-  conservative: 0.75, // Worst-case: AI performs 25% below target
-  base: 1.0,          // Expected baseline
-  optimistic: 1.20,   // Best-case: AI outperforms by 20%
+  conservative: 0.75,
+  base: 1.0,
+  optimistic: 1.20,
 } as const;
 
 // ============================================================================
-// SECTION 3: COMPUTATION ENGINE (Decoupled from UI)
-// Business intent is documented per calculation block.
+// SHARED CHART HELPERS
+// Recharts types value as ValueType | undefined. This helper provides a
+// null-safe currency formatter compatible with all Tooltip formatter props.
 // ============================================================================
 
+type RechartsValueType = number | string | Array<number | string> | undefined;
+
 /**
- * computeFinancials()
- * 
- * Pure function: given all user inputs + selected model, returns every financial
- * and operational metric needed by the dashboard. Keeping this outside the render
- * tree enables unit testing and future extraction to a shared utility layer.
- *
- * Philosophy: "Defensible Math" — every number must be explainable to a CFO in
- * plain English with a traceable formula.
+ * chartCurrencyFormatter
+ * Safe currency formatter for all Recharts Tooltip formatter props.
+ * Guards against undefined values passed by Recharts internal typing.
  */
+const chartCurrencyFormatter = (
+  value: RechartsValueType
+): [string, string] => {
+  const num = typeof value === 'number' ? value : Number(value ?? 0);
+  return [`$${num.toLocaleString()}`, ''];
+};
+
+// ============================================================================
+// SECTION 3: COMPUTATION ENGINE (Decoupled from UI)
+// ============================================================================
+
 function computeFinancials(
   inputs: DashboardInputs,
   selectedModel: LLMModel
@@ -233,163 +218,80 @@ function computeFinancials(
     projectionMode,
   } = inputs;
 
-  // ------------------------------------------------------------------
   // BLOCK A: Scenario Adjustment
-  // Purpose: Apply conservative/optimistic multiplier to deflection rate
-  // so executives can stress-test assumptions without touching base config.
-  // ------------------------------------------------------------------
   const scenarioMultiplier = SCENARIO_MULTIPLIERS[projectionMode];
-
-  // accuracyVariancePct is a manual +/- override on top of scenario mode.
-  // e.g., accuracyVariancePct = -5 means "what if AI is 5% less accurate?"
   const varianceMultiplier = 1 + accuracyVariancePct / 100;
-
-  // Combined effective deflection rate (capped 0–95% for realism)
   const effectiveDeflectionRate = Math.min(
     0.95,
     Math.max(0, (deflectionGoal / 100) * scenarioMultiplier * varianceMultiplier)
   );
 
-  // ------------------------------------------------------------------
   // BLOCK B: Volume Calculations
-  // Purpose: Establish the fundamental ticket routing split.
-  // ------------------------------------------------------------------
   const targetDeflections = Math.round(ticketVolume * (deflectionGoal / 100));
   const adjustedDeflections = Math.round(ticketVolume * effectiveDeflectionRate);
   const targetEscalations = ticketVolume - adjustedDeflections;
 
-  // ------------------------------------------------------------------
   // BLOCK C: Token Cost Layer
-  // Philosophy: "Success Reward Only" — we account for tokens consumed
-  // on BOTH resolved sessions AND failed escalations (sunk cost realism).
-  // ------------------------------------------------------------------
   const inputCostPerToken = selectedModel.inputCostPer1M / 1_000_000;
   const outputCostPerToken = selectedModel.outputCostPer1M / 1_000_000;
-
-  // Cost for a single conversation turn (input + output)
   const singleTurnCost =
     avgPromptTokens * inputCostPerToken + avgCompletionTokens * outputCostPerToken;
-
-  // Resolved sessions burn the full resolution turn count
   const costPerSuccessfulSession = singleTurnCost * avgTurnsPerResolved;
-  // Escalated sessions burn partial turns before human handoff (wasted spend)
   const costPerEscalatedSession = singleTurnCost * avgTurnsBeforeEscalation;
-
   const successfulTokensCost = adjustedDeflections * costPerSuccessfulSession;
   const nonDeflectedSunkTokensCost = targetEscalations * costPerEscalatedSession;
   const monthlyTotalTokenSpent = successfulTokensCost + nonDeflectedSunkTokensCost;
 
-  // ------------------------------------------------------------------
   // BLOCK D: Production Infrastructure & Compliance Costs
-  // Rationale: A raw token cost model understates TCO. Production AI
-  // systems require security, observability, and resilience layers —
-  // especially in regulated industries (HIPAA, GDPR, SOC2).
-  // ------------------------------------------------------------------
   const monthlyInfraBreakdown = {
     platform: monthlyPlatformFee,
     piiRedaction: piiRedactionCost,
     observability: observabilityCost,
     haFallback: haFallbackCost,
   };
-
-  // Total non-token operating overhead
   const totalMonthlyInfraCost =
     monthlyPlatformFee + piiRedactionCost + observabilityCost + haFallbackCost;
-
-  // True all-in monthly AI operations cost
   const totalMonthlyAICost = monthlyTotalTokenSpent + totalMonthlyInfraCost;
 
-  // ------------------------------------------------------------------
   // BLOCK E: Human Cost Baseline vs. Hybrid Model
-  // Purpose: Establish the counterfactual — what does full human support cost?
-  // ------------------------------------------------------------------
-  // Counterfactual: 100% human-handled support at fully loaded cost
   const pureHumanCost = ticketVolume * costPerLiveTicket;
-
-  // Hybrid: AI handles deflections (token cost), humans handle escalations
   const hybridHumanCost = targetEscalations * costPerLiveTicket;
   const totalHybridCost = hybridHumanCost + totalMonthlyAICost;
 
-  // ------------------------------------------------------------------
   // BLOCK F: Primary Financial Outputs
-  // ------------------------------------------------------------------
   const monthlySavings = pureHumanCost - totalHybridCost;
   const annualSavings = monthlySavings * 12;
-
-  // Raw operational ROI (month-over-month)
   const rawRoiPct =
     totalHybridCost > 0 ? (monthlySavings / totalHybridCost) * 100 : 0;
-
-  // True loaded cost per deflection: includes ALL AI costs, not just tokens.
-  // This is the CFO metric — what does each AI-resolved ticket actually cost us?
   const trueLoadedCostPerDeflection =
     adjustedDeflections > 0 ? totalMonthlyAICost / adjustedDeflections : 0;
-
-  // Break-even: how many months of savings to recover one-time build CapEx
   const breakEvenMonths =
     monthlySavings > 0
       ? Number((implementationCost / monthlySavings).toFixed(1))
       : Infinity;
 
-  // ------------------------------------------------------------------
-  // BLOCK G: TEI — Churn Impact (Financial Projection)
-  // Formula: Churn Saved Revenue = Deflections * (1 - Satisfaction Score) * CLV * ChurnSensitivity
-  //
-  // Business intent: When AI resolves tickets with high satisfaction, it
-  // reduces the probability that those customers will churn. The delta
-  // between dissatisfied customers who would have churned vs. satisfied
-  // resolutions represents preserved CLV. Churn sensitivity scales this
-  // to model uncertainty in the satisfaction→churn relationship.
-  // ------------------------------------------------------------------
+  // BLOCK G: TEI — Churn Impact
+  // Formula: Deflections × (1 - SatisfactionScore) × CLV × ChurnSensitivity
   const dissatisfiedResolutionRate = Math.max(0, 1 - resolutionSatisfactionScore);
-  // Churn prevented = deflections that would have caused churn if handled poorly
   const churnPrevented = adjustedDeflections * dissatisfiedResolutionRate * churnSensitivity;
   const churnSavedRevenue = churnPrevented * customerLifetimeValue;
   const annualChurnSavedRevenue = churnSavedRevenue * 12;
 
-  // ------------------------------------------------------------------
-  // BLOCK H: TEI — Engineering Reinvestment (Operational Metric)
-  // Formula: Hours Saved = (Deflections * AHT) / 60
-  //          FTEs Reclaimed = Hours Saved / Productive Hours Per Month
-  //          Engineering Opportunity Cost = FTEs Reclaimed * (DevRate * productiveHours)
-  //
-  // Business intent: Each deflected ticket represents minutes an engineer
-  // or senior agent would have spent on manual handling. Recaptured hours
-  // can be reinvested into product, automation, or oncall reduction.
-  // FTEs Reclaimed converts hours into headcount equivalents for
-  // workforce planning conversations.
-  // ------------------------------------------------------------------
-  const monthlyManualHoursSaved =
-    (adjustedDeflections * avgHandlingTimeMinutes) / 60;
-
+  // BLOCK H: TEI — Engineering Reinvestment
+  // Formula: FTEs = (Deflections × AHT / 60) / ProductiveHoursPerMonth
+  const monthlyManualHoursSaved = (adjustedDeflections * avgHandlingTimeMinutes) / 60;
   const ftesReclaimed =
-    productiveHoursPerMonth > 0
-      ? monthlyManualHoursSaved / productiveHoursPerMonth
-      : 0;
-
-  // Dollar value of the engineering capacity recaptured
+    productiveHoursPerMonth > 0 ? monthlyManualHoursSaved / productiveHoursPerMonth : 0;
   const engineeringOpportunityCost =
     ftesReclaimed * internalDevHourlyRate * productiveHoursPerMonth;
 
-  // ------------------------------------------------------------------
-  // BLOCK I: Total Economic Impact (TEI) Composite
-  // TEI = Direct Cost Savings + Churn Revenue Preserved + Engineering Value
-  //
-  // This is the "headline number" for the CFO — the full economic
-  // argument for the investment, beyond just operational savings.
-  // ------------------------------------------------------------------
+  // BLOCK I: TEI Composite
   const totalMonthlyEconomicValue =
     monthlySavings + churnSavedRevenue + engineeringOpportunityCost;
-
   const totalAnnualEconomicValue = totalMonthlyEconomicValue * 12;
 
-  // ------------------------------------------------------------------
   // BLOCK J: Risk-Adjusted ROI
-  // Formula: (TEI Annual Value - Implementation Cost) / Implementation Cost
-  //
-  // Applies scenario multiplier as a confidence discount to the ROI,
-  // giving the CFO a range rather than a point estimate.
-  // ------------------------------------------------------------------
+  // Formula: (TEI Annual × ScenarioMultiplier - CapEx) / CapEx × 100
   const riskAdjustedRoi =
     implementationCost > 0
       ? ((totalAnnualEconomicValue * scenarioMultiplier - implementationCost) /
@@ -428,7 +330,6 @@ function computeFinancials(
 
 // ============================================================================
 // SECTION 4: UI SUB-COMPONENTS
-// Small, focused components for data hierarchy clarity.
 // ============================================================================
 
 type MetricBadge = 'Financial Projection' | 'Operational Metric';
@@ -438,12 +339,11 @@ interface MetricCardProps {
   value: string;
   subtext?: string;
   icon: React.ReactNode;
-  accentColor: string; // Tailwind gradient string
+  accentColor: string;
   badgeType: MetricBadge;
   tooltip?: string;
 }
 
-/** Reusable executive metric card with badge classification */
 const MetricCard: React.FC<MetricCardProps> = ({
   label,
   value,
@@ -461,13 +361,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl relative overflow-hidden group">
-      {/* Badge Classification */}
       <span
         className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-full border mb-2 ${badgeColor}`}
       >
         {badgeType}
       </span>
-
       <div className="flex justify-between items-start">
         <span className="text-xs uppercase tracking-wider font-semibold text-slate-400 leading-tight pr-2">
           {label}
@@ -490,7 +388,6 @@ const MetricCard: React.FC<MetricCardProps> = ({
           {icon}
         </div>
       </div>
-
       <p className="text-2xl font-bold font-mono mt-2 text-white">{value}</p>
       {subtext && <p className="text-[10px] text-slate-500 mt-1">{subtext}</p>}
       <div className={`absolute bottom-0 right-0 left-0 h-0.5 bg-gradient-to-r ${accentColor}`} />
@@ -498,7 +395,6 @@ const MetricCard: React.FC<MetricCardProps> = ({
   );
 };
 
-/** Section header with icon */
 const SectionHeader: React.FC<{
   icon: React.ReactNode;
   title: string;
@@ -515,7 +411,6 @@ const SectionHeader: React.FC<{
   </div>
 );
 
-/** Slider input with label and formatted value display */
 const SliderInput: React.FC<{
   label: string;
   value: number;
@@ -526,7 +421,17 @@ const SliderInput: React.FC<{
   format: (v: number) => string;
   accentClass?: string;
   tooltip?: string;
-}> = ({ label, value, min, max, step, onChange, format, accentClass = 'accent-emerald-500', tooltip }) => {
+}> = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  format,
+  accentClass = 'accent-emerald-500',
+  tooltip,
+}) => {
   const [showTip, setShowTip] = useState(false);
   return (
     <div>
@@ -565,7 +470,6 @@ const SliderInput: React.FC<{
   );
 };
 
-/** Numeric field input (for precise dollar/count values) */
 const NumberInput: React.FC<{
   label: string;
   value: number;
@@ -596,13 +500,17 @@ const NumberInput: React.FC<{
       </div>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">{prefix}</span>
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">
+            {prefix}
+          </span>
         )}
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(Math.max(0, parseFloat(e.target.value) || 0))}
-          className={`w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm ${textColor} font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500/50 ${prefix ? 'pl-5' : ''}`}
+          className={`w-full bg-slate-800 border border-slate-700 rounded px-2 py-1.5 text-sm ${textColor} font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500/50 ${
+            prefix ? 'pl-5' : ''
+          }`}
         />
       </div>
     </div>
@@ -614,81 +522,55 @@ const NumberInput: React.FC<{
 // ============================================================================
 
 export default function LLMCostDashboard() {
-  // --------------------------------------------------------------------------
-  // STATE: Core Operational Inputs
-  // --------------------------------------------------------------------------
+  // Core Operational Inputs
   const [ticketVolume, setTicketVolume] = useState<number>(12000);
   const [costPerLiveTicket, setCostPerLiveTicket] = useState<number>(18.5);
   const [deflectionGoal, setDeflectionGoal] = useState<number>(45);
   const [selectedModelName, setSelectedModelName] = useState<string>('GPT-4o Mini');
 
-  // --------------------------------------------------------------------------
-  // STATE: Token Simulation
-  // --------------------------------------------------------------------------
+  // Token Simulation
   const [avgPromptTokens, setAvgPromptTokens] = useState<number>(650);
   const [avgCompletionTokens, setAvgCompletionTokens] = useState<number>(250);
   const [avgTurnsPerResolved, setAvgTurnsPerResolved] = useState<number>(4);
   const [avgTurnsBeforeEscalation, setAvgTurnsBeforeEscalation] = useState<number>(2);
 
-  // --------------------------------------------------------------------------
-  // STATE: Platform & CapEx
-  // --------------------------------------------------------------------------
+  // Platform & CapEx
   const [monthlyPlatformFee, setMonthlyPlatformFee] = useState<number>(1500);
   const [implementationCost, setImplementationCost] = useState<number>(8000);
 
-  // --------------------------------------------------------------------------
-  // STATE: TCO Production Infrastructure & Compliance Costs
-  // These are often omitted from "demo-grade" ROI calculators.
-  // We surface them explicitly for CFO defensibility.
-  // --------------------------------------------------------------------------
+  // Production Infrastructure & Compliance
   const [piiRedactionCost, setPiiRedactionCost] = useState<number>(400);
   const [observabilityCost, setObservabilityCost] = useState<number>(300);
   const [haFallbackCost, setHaFallbackCost] = useState<number>(250);
   const [showInfraPanel, setShowInfraPanel] = useState<boolean>(true);
 
-  // --------------------------------------------------------------------------
-  // STATE: TEI — Churn Impact Inputs
-  // --------------------------------------------------------------------------
+  // TEI: Churn Impact
   const [customerLifetimeValue, setCustomerLifetimeValue] = useState<number>(1200);
-  const [baselineChurnRate, setBaselineChurnRate] = useState<number>(5); // percent
-  const [resolutionSatisfactionScore, setResolutionSatisfactionScore] = useState<number>(82); // percent
+  const [baselineChurnRate, setBaselineChurnRate] = useState<number>(5);
+  const [resolutionSatisfactionScore, setResolutionSatisfactionScore] = useState<number>(82);
 
-  // --------------------------------------------------------------------------
-  // STATE: TEI — Engineering Reinvestment Inputs
-  // --------------------------------------------------------------------------
+  // TEI: Engineering Reinvestment
   const [avgHandlingTimeMinutes, setAvgHandlingTimeMinutes] = useState<number>(12);
   const [internalDevHourlyRate, setInternalDevHourlyRate] = useState<number>(85);
   const [productiveHoursPerMonth, setProductiveHoursPerMonth] = useState<number>(
     PRODUCTIVE_HOURS_DEFAULT
   );
 
-  // --------------------------------------------------------------------------
-  // STATE: Sensitivity Engine
-  // --------------------------------------------------------------------------
+  // Sensitivity Engine
   const [accuracyVariancePct, setAccuracyVariancePct] = useState<number>(0);
   const [churnSensitivity, setChurnSensitivity] = useState<number>(1.0);
   const [projectionMode, setProjectionMode] = useState<'conservative' | 'base' | 'optimistic'>(
     'base'
   );
 
-  // --------------------------------------------------------------------------
-  // STATE: UI Layout Controls
-  // --------------------------------------------------------------------------
+  // UI Layout Controls
   const [showAdvancedParams, setShowAdvancedParams] = useState<boolean>(false);
 
-  // --------------------------------------------------------------------------
-  // DERIVED: Selected model object
-  // --------------------------------------------------------------------------
   const selectedModel = useMemo(
     () => LLM_MODELS.find((m) => m.name === selectedModelName) ?? LLM_MODELS[1],
     [selectedModelName]
   );
 
-  // --------------------------------------------------------------------------
-  // MEMOIZED INPUTS OBJECT
-  // Collecting all inputs into a single object makes the dependency array
-  // of computeFinancials predictable and prevents missed recalculations.
-  // --------------------------------------------------------------------------
   const dashboardInputs: DashboardInputs = useMemo(
     () => ({
       ticketVolume,
@@ -724,43 +606,26 @@ export default function LLMCostDashboard() {
     ]
   );
 
-  // --------------------------------------------------------------------------
-  // MEMOIZED COMPUTATION ENGINE OUTPUT
-  // Any input change triggers a full recompute via useMemo.
-  // The pure function nature of computeFinancials ensures no side effects.
-  // --------------------------------------------------------------------------
   const metrics = useMemo(
     () => computeFinancials(dashboardInputs, selectedModel),
     [dashboardInputs, selectedModel]
   );
 
-  // --------------------------------------------------------------------------
-  // CHART DATA: 12-Month TCO Projection Timeline
-  // --------------------------------------------------------------------------
   const projectionTimelineData = useMemo(() => {
     let cumulativePureHuman = 0;
-    let cumulativeHybrid = implementationCost; // Month 0 CapEx loaded into M1
-
+    let cumulativeHybrid = implementationCost;
     return Array.from({ length: 12 }, (_, i) => {
       const monthNum = i + 1;
       cumulativePureHuman += metrics.pureHumanCost;
       cumulativeHybrid += metrics.totalHybridCost;
-      const teiValue = cumulativeHybrid - metrics.totalAnnualEconomicValue * (monthNum / 12);
-
       return {
         month: `M${monthNum}`,
         'Legacy Support ($)': Math.round(cumulativePureHuman),
         'AI Hybrid Ops ($)': Math.round(cumulativeHybrid),
-        'TEI-Adjusted Value ($)': Math.round(
-          cumulativePureHuman - metrics.totalMonthlyEconomicValue * monthNum
-        ),
       };
     });
   }, [metrics, implementationCost]);
 
-  // --------------------------------------------------------------------------
-  // CHART DATA: Model Latency vs. Cost Matrix
-  // --------------------------------------------------------------------------
   const scatterData = useMemo(
     () =>
       LLM_MODELS.map((m) => {
@@ -778,9 +643,6 @@ export default function LLMCostDashboard() {
     [avgPromptTokens, avgCompletionTokens, avgTurnsPerResolved, selectedModelName]
   );
 
-  // --------------------------------------------------------------------------
-  // CHART DATA: Infrastructure Cost Breakdown (for sidebar visualization)
-  // --------------------------------------------------------------------------
   const infraBreakdownData = useMemo(
     () => [
       { name: 'Platform SaaS', value: metrics.monthlyInfraBreakdown.platform, fill: '#818cf8' },
@@ -791,9 +653,6 @@ export default function LLMCostDashboard() {
     [metrics.monthlyInfraBreakdown]
   );
 
-  // --------------------------------------------------------------------------
-  // HELPERS: Formatting
-  // --------------------------------------------------------------------------
   const fmt = {
     usd: (v: number) => `$${Math.round(v).toLocaleString()}`,
     usdCents: (v: number) => `$${v.toFixed(2)}`,
@@ -826,15 +685,10 @@ export default function LLMCostDashboard() {
 
   const currentMode = modeConfig[projectionMode];
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
     <div className="w-full bg-slate-950 text-slate-100 p-6 rounded-2xl border border-slate-800 shadow-2xl max-w-screen-2xl mx-auto font-sans">
 
-      {/* ====================================================================
-          HEADER BAND
-      ==================================================================== */}
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 mb-6 gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -861,24 +715,14 @@ export default function LLMCostDashboard() {
             Scenario mode:{' '}
             <strong className={currentMode.color}>{currentMode.desc}</strong>. Adjusted
             deflections:{' '}
-            <strong className="font-mono text-white">
-              {fmt.num(metrics.adjustedDeflections)}
-            </strong>{' '}
+            <strong className="font-mono text-white">{fmt.num(metrics.adjustedDeflections)}</strong>{' '}
             vs. target{' '}
-            <strong className="font-mono text-slate-400">
-              {fmt.num(metrics.targetDeflections)}
-            </strong>
-            .
+            <strong className="font-mono text-slate-400">{fmt.num(metrics.targetDeflections)}</strong>.
           </p>
         </div>
       </div>
 
-      {/* ====================================================================
-          EXECUTIVE BRIEF BANNER
-          Purpose: Give VPs/CFOs the three numbers they care about at a glance
-          before they look at any detail. Data hierarchy principle: headline
-          first, detail second.
-      ==================================================================== */}
+      {/* EXECUTIVE BRIEF BANNER */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-gradient-to-br from-emerald-950/60 to-slate-900 border border-emerald-500/20 rounded-xl p-5 relative overflow-hidden">
           <div className="flex items-center gap-2 mb-1">
@@ -919,9 +763,7 @@ export default function LLMCostDashboard() {
               Risk-Adjusted ROI
             </span>
           </div>
-          <p
-            className={`text-3xl font-black font-mono ${metrics.riskAdjustedRoi >= 0 ? 'text-white' : 'text-rose-400'}`}
-          >
+          <p className={`text-3xl font-black font-mono ${metrics.riskAdjustedRoi >= 0 ? 'text-white' : 'text-rose-400'}`}>
             {fmt.pct(metrics.riskAdjustedRoi)}
           </p>
           <p className="text-[10px] text-amber-400/70 mt-1">
@@ -931,14 +773,10 @@ export default function LLMCostDashboard() {
         </div>
       </div>
 
-      {/* ====================================================================
-          MAIN LAYOUT GRID
-      ==================================================================== */}
+      {/* MAIN LAYOUT GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        {/* ==================================================================
-            LEFT PANEL: INPUTS (col-span-4)
-        ================================================================== */}
+        {/* LEFT PANEL: INPUTS */}
         <div className="lg:col-span-4 space-y-5">
 
           {/* Core Parameters */}
@@ -997,7 +835,7 @@ export default function LLMCostDashboard() {
             </div>
           </div>
 
-          {/* TEI Inputs: Churn + Engineering */}
+          {/* TEI Inputs */}
           <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-800/70 space-y-4">
             <SectionHeader
               icon={<TrendingUp className="w-4 h-4 text-cyan-400" />}
@@ -1044,7 +882,7 @@ export default function LLMCostDashboard() {
             />
           </div>
 
-          {/* Production Infrastructure & Compliance Sidebar */}
+          {/* Production Infrastructure Sidebar */}
           <div className="bg-slate-900/60 rounded-xl border border-slate-800/70 overflow-hidden">
             <button
               onClick={() => setShowInfraPanel(!showInfraPanel)}
@@ -1077,13 +915,12 @@ export default function LLMCostDashboard() {
                   Production AI systems require compliance and resilience layers. These costs are
                   often omitted from demo-grade ROI calculators, creating CFO credibility risk.
                 </p>
-
                 <NumberInput
                   label="PII Redaction / Security Layer"
                   value={piiRedactionCost}
                   onChange={setPiiRedactionCost}
                   prefix="$"
-                  tooltip="Executive Rationale: Any AI system processing customer support data must redact PII before sending to LLM APIs. Required for HIPAA, GDPR, and SOC2 compliance. Typical tooling: AWS Comprehend, Azure Presidio, or custom middleware."
+                  tooltip="Executive Rationale: Any AI system processing customer support data must redact PII before sending to LLM APIs. Required for HIPAA, GDPR, and SOC2 compliance."
                   textColor="text-rose-400"
                 />
                 <NumberInput
@@ -1091,19 +928,17 @@ export default function LLMCostDashboard() {
                   value={observabilityCost}
                   onChange={setObservabilityCost}
                   prefix="$"
-                  tooltip="Executive Rationale: AI auditability is non-negotiable for regulated industries. Observability tools (LangSmith, Helicone, Langfuse) log every prompt/response for compliance review, debugging, and quality assurance. Without this, you cannot defend AI decisions to auditors."
+                  tooltip="Executive Rationale: AI auditability is non-negotiable for regulated industries. Observability tools log every prompt/response for compliance review and quality assurance."
                   textColor="text-emerald-400"
                 />
                 <NumberInput
-                  label="High Availability Fallback (Secondary Model)"
+                  label="High Availability Fallback"
                   value={haFallbackCost}
                   onChange={setHaFallbackCost}
                   prefix="$"
-                  tooltip="Executive Rationale: Single-provider LLM dependency creates SLA risk. A secondary model fallback (e.g., Gemini Flash as backup to GPT-4o) ensures uptime commitments and protects customer SLAs during provider outages."
+                  tooltip="Executive Rationale: Single-provider LLM dependency creates SLA risk. A secondary model fallback ensures uptime commitments during provider outages."
                   textColor="text-amber-400"
                 />
-
-                {/* Infra cost breakdown visual */}
                 <div className="pt-2">
                   <p className="text-[9px] uppercase tracking-widest text-slate-500 mb-2">
                     Monthly Overhead Allocation
@@ -1138,7 +973,7 @@ export default function LLMCostDashboard() {
             )}
           </div>
 
-          {/* Advanced Token Parameters (Collapsible) */}
+          {/* Advanced Token Parameters */}
           <div className="bg-slate-900/60 rounded-xl border border-slate-800/70 overflow-hidden">
             <button
               onClick={() => setShowAdvancedParams(!showAdvancedParams)}
@@ -1154,42 +989,70 @@ export default function LLMCostDashboard() {
                 <ChevronDown className="w-4 h-4 text-slate-500" />
               )}
             </button>
-
             {showAdvancedParams && (
               <div className="px-5 pb-5 border-t border-slate-800 pt-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <NumberInput label="Prompt Tokens / Turn" value={avgPromptTokens} onChange={setAvgPromptTokens} tooltip="Includes system prompt, RAG context, and conversation history per turn." />
-                  <NumberInput label="Completion Tokens" value={avgCompletionTokens} onChange={setAvgCompletionTokens} tooltip="Average output tokens generated per response. Typically 150–400 for support use cases." />
-                  <NumberInput label="Turns to Resolve" value={avgTurnsPerResolved} onChange={setAvgTurnsPerResolved} tooltip="Average conversational turns before successful AI resolution. More turns = higher cost." />
-                  <NumberInput label="Turns to Escalate" value={avgTurnsBeforeEscalation} onChange={setAvgTurnsBeforeEscalation} tooltip="Turns consumed before handoff to human. These tokens are sunk cost — no resolution value." />
-                  <NumberInput label="Platform SaaS Fee /mo" value={monthlyPlatformFee} onChange={setMonthlyPlatformFee} prefix="$" textColor="text-emerald-400" />
-                  <NumberInput label="CapEx Build Cost" value={implementationCost} onChange={setImplementationCost} prefix="$" textColor="text-indigo-400" />
+                  <NumberInput
+                    label="Prompt Tokens / Turn"
+                    value={avgPromptTokens}
+                    onChange={setAvgPromptTokens}
+                    tooltip="Includes system prompt, RAG context, and conversation history per turn."
+                  />
+                  <NumberInput
+                    label="Completion Tokens"
+                    value={avgCompletionTokens}
+                    onChange={setAvgCompletionTokens}
+                    tooltip="Average output tokens generated per response. Typically 150–400 for support use cases."
+                  />
+                  <NumberInput
+                    label="Turns to Resolve"
+                    value={avgTurnsPerResolved}
+                    onChange={setAvgTurnsPerResolved}
+                    tooltip="Average conversational turns before successful AI resolution."
+                  />
+                  <NumberInput
+                    label="Turns to Escalate"
+                    value={avgTurnsBeforeEscalation}
+                    onChange={setAvgTurnsBeforeEscalation}
+                    tooltip="Turns consumed before handoff to human. These tokens are sunk cost."
+                  />
+                  <NumberInput
+                    label="Platform SaaS Fee /mo"
+                    value={monthlyPlatformFee}
+                    onChange={setMonthlyPlatformFee}
+                    prefix="$"
+                    textColor="text-emerald-400"
+                  />
+                  <NumberInput
+                    label="CapEx Build Cost"
+                    value={implementationCost}
+                    onChange={setImplementationCost}
+                    prefix="$"
+                    textColor="text-indigo-400"
+                  />
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* ==================================================================
-            RIGHT PANEL: OUTPUTS (col-span-8)
-        ================================================================== */}
+        {/* RIGHT PANEL: OUTPUTS */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* ================================================================
-              STRESS TEST / SENSITIVITY ENGINE PANEL
-          ================================================================ */}
+          {/* SENSITIVITY ENGINE */}
           <div className="bg-slate-900/60 p-5 rounded-xl border border-amber-500/20">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <RefreshCw className="w-4 h-4 text-amber-400" />
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-200">Sensitivity Engine — Stress Test</h2>
+                  <h2 className="text-sm font-semibold text-slate-200">
+                    Sensitivity Engine — Stress Test
+                  </h2>
                   <p className="text-[10px] text-slate-500">
                     Adjust variance assumptions to model scenario ranges for board presentations
                   </p>
                 </div>
               </div>
-              {/* Projection Mode Toggle */}
               <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
                 {(['conservative', 'base', 'optimistic'] as const).map((mode) => (
                   <button
@@ -1210,7 +1073,6 @@ export default function LLMCostDashboard() {
                 ))}
               </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
                 <SliderInput
@@ -1222,14 +1084,23 @@ export default function LLMCostDashboard() {
                   onChange={setAccuracyVariancePct}
                   format={(v) => `${v > 0 ? '+' : ''}${v}%`}
                   accentClass={accuracyVariancePct < 0 ? 'accent-rose-500' : 'accent-emerald-500'}
-                  tooltip="Applies a delta to your target deflection rate. -10% models an AI accuracy shortfall; +10% models outperformance. Use this to bound the range for board presentations."
+                  tooltip="Applies a delta to your target deflection rate. -10% models an AI accuracy shortfall; +10% models outperformance."
                 />
                 <div className="mt-2 flex items-center gap-2 text-[10px] text-slate-500">
                   <div className="flex-1 h-1 bg-gradient-to-r from-rose-500 via-slate-700 to-emerald-500 rounded" />
-                  <span>Effective rate: <span className="text-white font-mono">{fmt.pct((deflectionGoal / 100) * SCENARIO_MULTIPLIERS[projectionMode] * (1 + accuracyVariancePct / 100) * 100)}</span></span>
+                  <span>
+                    Effective rate:{' '}
+                    <span className="text-white font-mono">
+                      {fmt.pct(
+                        (deflectionGoal / 100) *
+                          SCENARIO_MULTIPLIERS[projectionMode] *
+                          (1 + accuracyVariancePct / 100) *
+                          100
+                      )}
+                    </span>
+                  </span>
                 </div>
               </div>
-
               <div>
                 <SliderInput
                   label="Churn Sensitivity Multiplier"
@@ -1240,7 +1111,7 @@ export default function LLMCostDashboard() {
                   onChange={setChurnSensitivity}
                   format={(v) => `${v.toFixed(2)}x`}
                   accentClass={churnSensitivity > 1 ? 'accent-cyan-500' : 'accent-rose-500'}
-                  tooltip="Scales the CLV-to-churn conversion. At 1.0x = base assumption. At 0.5x = conservative view (churn less correlated with resolution quality). At 2.0x = high-stakes retention environment where satisfaction strongly predicts churn."
+                  tooltip="Scales the CLV-to-churn conversion. 1.0x = base. 0.5x = conservative. 2.0x = high-stakes retention environment."
                 />
                 <div className="mt-2 text-[10px] text-slate-500">
                   Churn revenue protected:{' '}
@@ -1252,9 +1123,7 @@ export default function LLMCostDashboard() {
             </div>
           </div>
 
-          {/* ================================================================
-              METRIC CARDS GRID: Core Financial + TEI Outputs
-          ================================================================ */}
+          {/* METRIC CARDS ROW 1 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <MetricCard
               label="Net Annual Savings"
@@ -1263,7 +1132,7 @@ export default function LLMCostDashboard() {
               icon={<DollarSign className="w-4 h-4 text-emerald-400" />}
               accentColor="from-emerald-500 to-teal-400"
               badgeType="Financial Projection"
-              tooltip="Annual delta between full human-operated support costs and the AI hybrid model. Includes all token, platform, and infrastructure costs. Formula: (Pure Human Cost - Total Hybrid Cost) × 12"
+              tooltip="Annual delta between full human-operated support costs and the AI hybrid model. Formula: (Pure Human Cost - Total Hybrid Cost) × 12"
             />
             <MetricCard
               label="Churn Revenue Saved"
@@ -1272,7 +1141,7 @@ export default function LLMCostDashboard() {
               icon={<TrendingUp className="w-4 h-4 text-cyan-400" />}
               accentColor="from-cyan-500 to-blue-500"
               badgeType="Financial Projection"
-              tooltip="Revenue preserved by preventing churn in AI-resolved tickets. Formula: Deflections × (1 - SatisfactionScore) × CLV × ChurnSensitivity. Assumes satisfied customers are retained at CLV value."
+              tooltip="Revenue preserved by preventing churn. Formula: Deflections × (1 - SatisfactionScore) × CLV × ChurnSensitivity."
             />
             <MetricCard
               label="Engineering Value Reclaimed"
@@ -1281,19 +1150,22 @@ export default function LLMCostDashboard() {
               icon={<Users className="w-4 h-4 text-purple-400" />}
               accentColor="from-purple-500 to-indigo-500"
               badgeType="Operational Metric"
-              tooltip="Dollar value of engineering/senior-agent capacity recaptured from manual ticket handling. Formula: (Deflections × AHT / 60) / ProductiveHrs × DevRate × ProductiveHrs. FTEs = Hours Saved ÷ 160 hrs/mo."
+              tooltip="Dollar value of capacity recaptured from manual ticket handling. FTEs = Hours Saved ÷ 160 hrs/mo."
             />
             <MetricCard
               label="Sunk Escalation Tax"
               value={fmt.usd(metrics.nonDeflectedSunkTokensCost)}
-              subtext={`${fmt.pct((metrics.nonDeflectedSunkTokensCost / (metrics.monthlyTotalTokenSpent || 1)) * 100)} of token budget wasted`}
+              subtext={`${fmt.pct(
+                (metrics.nonDeflectedSunkTokensCost / (metrics.monthlyTotalTokenSpent || 1)) * 100
+              )} of token budget wasted`}
               icon={<AlertTriangle className="w-4 h-4 text-rose-400" />}
               accentColor="from-rose-500 to-pink-500"
               badgeType="Operational Metric"
-              tooltip="Token spend on conversations that ended in human escalation — providing zero deflection value. Reducing this requires improving context boundaries, intent detection, and escalation trigger logic."
+              tooltip="Token spend on conversations that ended in human escalation with zero deflection value."
             />
           </div>
 
+          {/* METRIC CARDS ROW 2 */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <MetricCard
               label="True Loaded Cost / Deflection"
@@ -1302,7 +1174,7 @@ export default function LLMCostDashboard() {
               icon={<BarChart2 className="w-4 h-4 text-sky-400" />}
               accentColor="from-sky-500 to-blue-500"
               badgeType="Financial Projection"
-              tooltip="All-in AI cost per successfully deflected ticket: tokens + platform + PII + observability + HA costs, divided by actual deflections. This is the CFO's 'true unit economics' number."
+              tooltip="All-in AI cost per deflected ticket: tokens + platform + PII + observability + HA, divided by actual deflections."
             />
             <MetricCard
               label="CapEx Break-Even"
@@ -1311,7 +1183,7 @@ export default function LLMCostDashboard() {
               icon={<Zap className="w-4 h-4 text-yellow-400" />}
               accentColor="from-yellow-500 to-amber-500"
               badgeType="Financial Projection"
-              tooltip="Months required to recover the one-time build/implementation cost from operational savings alone. Formula: CapEx ÷ Monthly Savings. Does not include TEI uplift."
+              tooltip="Months to recover the one-time build cost from operational savings. Formula: CapEx ÷ Monthly Savings."
             />
             <MetricCard
               label="Monthly Token Spend"
@@ -1320,7 +1192,7 @@ export default function LLMCostDashboard() {
               icon={<Cpu className="w-4 h-4 text-indigo-400" />}
               accentColor="from-indigo-500 to-violet-500"
               badgeType="Operational Metric"
-              tooltip="Raw API token costs (resolved sessions + escalated sunk costs). Add platform, PII, observability, and HA costs for full TCO. All-in figure shown in subtext."
+              tooltip="Raw API token costs for resolved and escalated sessions combined. All-in figure includes infra overhead."
             />
             <MetricCard
               label="Raw Operational ROI"
@@ -1329,13 +1201,11 @@ export default function LLMCostDashboard() {
               icon={<Percent className="w-4 h-4 text-teal-400" />}
               accentColor="from-teal-500 to-cyan-500"
               badgeType="Financial Projection"
-              tooltip="Operational savings as a percentage of total hybrid AI operating costs. This is the direct cost argument. See Risk-Adjusted ROI in the Executive Brief for the TEI-inclusive view."
+              tooltip="Operational savings as a percentage of total hybrid AI operating costs."
             />
           </div>
 
-          {/* ================================================================
-              CHART: 12-Month TCO Projection
-          ================================================================ */}
+          {/* 12-MONTH TCO CHART */}
           <div className="bg-slate-900/40 p-5 rounded-xl border border-slate-800">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1347,7 +1217,11 @@ export default function LLMCostDashboard() {
                 </p>
               </div>
               <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">
-                Δ Year-1: {fmt.usd(metrics.pureHumanCost * 12 - (metrics.totalHybridCost * 12 + implementationCost))}
+                Δ Year-1:{' '}
+                {fmt.usd(
+                  metrics.pureHumanCost * 12 -
+                    (metrics.totalHybridCost * 12 + implementationCost)
+                )}
               </span>
             </div>
             <div className="h-64">
@@ -1380,9 +1254,14 @@ export default function LLMCostDashboard() {
                       borderRadius: '8px',
                       fontSize: '11px',
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
+                    formatter={chartCurrencyFormatter}
                   />
-                  <Legend verticalAlign="top" height={32} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
+                  <Legend
+                    verticalAlign="top"
+                    height={32}
+                    iconType="circle"
+                    wrapperStyle={{ fontSize: '11px' }}
+                  />
                   <Area
                     type="monotone"
                     dataKey="Legacy Support ($)"
@@ -1402,9 +1281,7 @@ export default function LLMCostDashboard() {
             </div>
           </div>
 
-          {/* ================================================================
-              SPLIT CHARTS: Token Spend Breakdown + Model Matrix
-          ================================================================ */}
+          {/* SPLIT CHARTS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             {/* Token Spend Allocation */}
@@ -1433,7 +1310,13 @@ export default function LLMCostDashboard() {
                       fontSize={10}
                       tickFormatter={(v) => `$${v}`}
                     />
-                    <YAxis type="category" dataKey="name" stroke="#475569" fontSize={10} hide />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      stroke="#475569"
+                      fontSize={10}
+                      hide
+                    />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: '#0f172a',
@@ -1441,7 +1324,7 @@ export default function LLMCostDashboard() {
                         borderRadius: '8px',
                         fontSize: '11px',
                       }}
-                      formatter={(v: number) => [`$${v.toLocaleString()}`, '']}
+                      formatter={chartCurrencyFormatter}
                     />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
                     <Bar dataKey="Resolved Token Spend" stackId="a" fill="#38bdf8" barSize={36} />
@@ -1455,7 +1338,9 @@ export default function LLMCostDashboard() {
                 <strong className="text-rose-400">Waste Ratio:</strong>{' '}
                 <span className="font-mono text-rose-300 font-bold">
                   {fmt.pct(
-                    (metrics.nonDeflectedSunkTokensCost / (metrics.monthlyTotalTokenSpent || 1)) * 100
+                    (metrics.nonDeflectedSunkTokensCost /
+                      (metrics.monthlyTotalTokenSpent || 1)) *
+                      100
                   )}
                 </span>{' '}
                 of token spend yields no deflection value. Improve intent classification and
@@ -1529,16 +1414,14 @@ export default function LLMCostDashboard() {
               <div className="mt-3 p-3 bg-slate-950 rounded-lg border border-slate-800 text-[10px] text-slate-400 leading-relaxed text-center">
                 💡{' '}
                 <span className="text-cyan-400 font-semibold">Routing Strategy:</span> Tier 1
-                intents → <strong className="text-indigo-400">Gemini Flash / GPT-4o Mini</strong>.
-                Complex reasoning → <strong className="text-indigo-400">Claude Sonnet</strong> or
-                GPT-4o. HA fallback pairs primary with same-tier secondary.
+                intents →{' '}
+                <strong className="text-indigo-400">Gemini Flash / GPT-4o Mini</strong>. Complex
+                reasoning → <strong className="text-indigo-400">Claude Sonnet</strong> or GPT-4o.
               </div>
             </div>
           </div>
 
-          {/* ================================================================
-              TEI VALUE DECOMPOSITION: Financial + Operational Breakdown
-          ================================================================ */}
+          {/* TEI DECOMPOSITION CHART */}
           <div className="bg-slate-900/40 p-5 rounded-xl border border-slate-800">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -1565,7 +1448,9 @@ export default function LLMCostDashboard() {
                       category: 'Annual Value',
                       'Direct Savings': Math.round(metrics.annualSavings),
                       'Churn Revenue Saved': Math.round(metrics.annualChurnSavedRevenue),
-                      'Eng. Opportunity Value': Math.round(metrics.engineeringOpportunityCost * 12),
+                      'Eng. Opportunity Value': Math.round(
+                        metrics.engineeringOpportunityCost * 12
+                      ),
                     },
                   ]}
                   margin={{ top: 10, right: 20, left: 10, bottom: 0 }}
@@ -1584,7 +1469,7 @@ export default function LLMCostDashboard() {
                       borderRadius: '8px',
                       fontSize: '11px',
                     }}
-                    formatter={(v: number) => [`$${v.toLocaleString()}`, '']}
+                    formatter={chartCurrencyFormatter}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
                   <Bar dataKey="Direct Savings" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -1597,14 +1482,12 @@ export default function LLMCostDashboard() {
               {[
                 {
                   label: 'Direct Savings',
-                  monthly: metrics.monthlySavings,
                   annual: metrics.annualSavings,
                   color: 'text-emerald-400',
                   pct: (metrics.monthlySavings / (metrics.totalMonthlyEconomicValue || 1)) * 100,
                 },
                 {
                   label: 'Churn Revenue',
-                  monthly: metrics.churnSavedRevenue,
                   annual: metrics.annualChurnSavedRevenue,
                   color: 'text-cyan-400',
                   pct:
@@ -1612,7 +1495,6 @@ export default function LLMCostDashboard() {
                 },
                 {
                   label: 'Eng. Value',
-                  monthly: metrics.engineeringOpportunityCost,
                   annual: metrics.engineeringOpportunityCost * 12,
                   color: 'text-violet-400',
                   pct:
@@ -1631,17 +1513,13 @@ export default function LLMCostDashboard() {
                   <p className={`text-sm font-bold font-mono ${item.color}`}>
                     {fmt.usd(item.annual)}/yr
                   </p>
-                  <p className="text-[9px] text-slate-600 mt-0.5">
-                    {fmt.pct(item.pct)} of TEI
-                  </p>
+                  <p className="text-[9px] text-slate-600 mt-0.5">{fmt.pct(item.pct)} of TEI</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ================================================================
-              DOCUMENTATION / ASSUMPTIONS FOOTER
-          ================================================================ */}
+          {/* ASSUMPTIONS FOOTER */}
           <div className="bg-slate-900/20 border border-slate-800 p-5 rounded-xl">
             <h4 className="font-bold text-slate-200 flex items-center gap-2 mb-4 text-sm">
               <FileText className="w-4 h-4 text-emerald-400" />
@@ -1652,25 +1530,24 @@ export default function LLMCostDashboard() {
                 <div>
                   <p className="font-semibold text-slate-300 mb-0.5">1. Sunk Token Realism</p>
                   <p>
-                    Failed escalations consume tokens (at <em>avgTurnsBeforeEscalation</em> depth)
-                    with no deflection value. Omitting this overstates ROI by 15–40% in typical
+                    Failed escalations consume tokens at avgTurnsBeforeEscalation depth with no
+                    deflection value. Omitting this overstates ROI by 15–40% in typical
                     deployments.
                   </p>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-300 mb-0.5">2. Churn-CLV Bridge</p>
                   <p>
-                    Churn preservation formula assumes poor AI resolution (1 - CSAT score) is a
-                    proxy for churn signal at CLV value. Churn sensitivity multiplier lets you
-                    bound optimistic vs. conservative retention assumptions.
+                    Churn preservation assumes poor AI resolution (1 - CSAT score) is a proxy for
+                    churn signal at CLV value. Churn sensitivity multiplier bounds optimistic vs.
+                    conservative retention assumptions.
                   </p>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-300 mb-0.5">3. FTE Reclaimed Formula</p>
                   <p>
                     FTEs Reclaimed = (Deflections × AHT in hours) ÷ 160 productive hours/month.
-                    This is a capacity metric, not a headcount reduction recommendation — it
-                    represents reinvestable engineering bandwidth.
+                    This is a capacity metric, not a headcount reduction recommendation.
                   </p>
                 </div>
               </div>
@@ -1680,7 +1557,7 @@ export default function LLMCostDashboard() {
                   <p>
                     PII redaction, observability, and HA costs are surfaced explicitly because
                     they are systematically excluded from vendor ROI calculators. In HIPAA/GDPR
-                    contexts, PII and audit logging are mandatory, not optional.
+                    contexts these are mandatory, not optional.
                   </p>
                 </div>
                 <div>
@@ -1688,16 +1565,15 @@ export default function LLMCostDashboard() {
                     5. Scenario Discount Methodology
                   </p>
                   <p>
-                    Conservative mode applies a 0.75× multiplier to deflection rate and TEI
-                    projections, modeling AI underperformance risk. Optimistic mode applies 1.20×.
-                    Accuracy Variance adds an additive delta on top of scenario mode.
+                    Conservative applies 0.75× multiplier to deflection rate. Optimistic applies
+                    1.20×. Accuracy Variance adds an additive delta on top of scenario mode.
                   </p>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-300 mb-0.5">6. Risk-Adjusted ROI</p>
                   <p>
-                    Formula: (TEI Annual Value × Scenario Multiplier − CapEx) ÷ CapEx × 100.
-                    Incorporates both scenario mode and accuracy variance as compounding discount
+                    Formula: (TEI Annual × Scenario Multiplier − CapEx) ÷ CapEx × 100.
+                    Incorporates scenario mode and accuracy variance as compounding discount
                     factors for board-level confidence intervals.
                   </p>
                 </div>
