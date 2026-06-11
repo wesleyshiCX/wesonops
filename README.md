@@ -51,9 +51,9 @@ decision artifact.
 - A copy-ready executive brief for decks, email, or Slack
 - **Board Mode** — hides all inputs for clean executive screen-share
 
-🔗 **Try it:** [https://www.wesonops.com/tools/llm-cost-calculator](https://www.wesonops.com/tools/llm-cost-calculator) 
+🔗 **Try it:** [https://www.wesonops.com/llm-cost](https://www.wesonops.com/llm-cost) 
 
-![AI Deflection TCO Studio](./docs/LLM-cost-deflection-screenshot.png)
+![AI Deflection TCO Studio](./docs/AI-deflection-cost-screenshot.png)
 
 ---
 
