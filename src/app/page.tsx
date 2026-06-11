@@ -76,7 +76,7 @@ export default function Home() {
               </p>
               <div className="flex flex-col gap-2">
                 <Link
-                  href="/tools/llm-cost-calculator"
+                  href="/llm-cost"
                   className="inline-block bg-[#264653] text-white px-6 py-2.5 rounded hover:opacity-90 transition-opacity font-medium text-center text-sm"
                 >
                   Launch Studio

@@ -12,26 +12,48 @@ decks at every company.
 
 ## Tools
 
-### 🧮 LLM ROI Modeler — *Live*
-**A CFO-grade strategy model for AI agent budgets.** Calculates 
-support-op token economics, engine latency matrices, and escape 
-hand-off taxes to build defensible deflection investment cases.
+### 🧮 AI Deflection TCO Studio — *Live*
+**A CFO-grade Total Economic Impact model for AI support deflection.** 
+Built on a pure, unit-tested computation engine with the honest math 
+vendor calculators leave out.
 
-Vendor pitches give you deflection rate. Finance asks for cost per 
-deflected ticket. Engineering asks which model. This modeler 
-unifies all three views into a single decision artifact.
+Vendor pitches give you a deflection rate and a four-digit ROI. 
+Finance asks for cost per deflected ticket with a real denominator. 
+Engineering asks which model and what it costs at turn four, not 
+turn one. This studio unifies all three views into a single 
+decision artifact.
 
-**What it models:**
-- Token economics across frontier and open-source models
-- Latency-vs-cost tradeoff matrices
-- **Escape hand-off tax** — the hidden cost of failed deflections 
-  that escalate angrier than they started
-- Break-even deflection rate vs. fully-loaded agent cost
-- Sensitivity analysis on volume and deflection-rate shifts
+**Why the numbers hold up in a finance review:**
+- **Honest first-year ROI** — benefit divided by *CapEx plus 12 
+  months of operating cost*, not CapEx alone. No 19,000% fantasy 
+  figures.
+- **History-aware token model** — each turn's prompt carries the 
+  full conversation history plus system/RAG context, so session 
+  costs grow realistically (2–4× what flat-per-turn models show), 
+  with an overhead multiplier for retries, guardrails, and eval 
+  traffic.
+- **The costs vendors omit** — maintenance FTE for prompt/KB/eval 
+  upkeep, volume-scaled compliance and observability infra, and the 
+  **sunk escalation tax**: tokens burned on conversations that 
+  escalate to a human anyway.
+- **Labor capture rate** — staffing isn't perfectly elastic; the 
+  model discounts avoided handle-time to what you can actually bank.
+- **Extended TEI, fenced off** — churn revenue protected and FTE 
+  capacity reclaimed are reported as directional strategic value, 
+  *never* blended into the headline ROI. No double-counting labor.
+
+**What you get out of it:**
+- Conservative / Base / Optimistic scenario comparison, side by side
+- 12-month cumulative TCO vs. legacy baseline with break-even marker
+- Monthly cost composition (spoiler: it's rarely the tokens)
+- Built-in input validation that flags unrealistic assumptions 
+  before they reach a board deck
+- A copy-ready executive brief for decks, email, or Slack
+- **Board Mode** — hides all inputs for clean executive screen-share
 
 🔗 **Try it:** [https://www.wesonops.com/tools/llm-cost-calculator](https://www.wesonops.com/tools/llm-cost-calculator) 
 
-![LLM ROI Modeler](./docs/LLM-cost-deflection-screenshot.png)
+![AI Deflection TCO Studio](./docs/LLM-cost-deflection-screenshot.png)
 
 ---
 
@@ -65,7 +87,7 @@ which is the whole point in a SOC2 context.
 
 ## Status
 
-- **LLM ROI Modeler:** Live at [wesonops.com](https://wesonops.com)
+- **AI Deflection TCO Studio:** Live at [wesonops.com](https://wesonops.com)
 - **SLA RCA Auditor:** Architecture complete; demo + waitlist live; 
   full release pending usage cost model
 
