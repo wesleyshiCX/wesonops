@@ -82,7 +82,7 @@ export default function Home() {
                   Launch Studio
                 </Link>
                 <a
-                  href="https://github.com/your-username/ai-deflection-tco-studio"
+                  href="https://github.com/wesleyshiCX/ai-deflection-tco-studio"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center gap-2 border border-[#264653]/30 text-[#264653] px-6 py-2 rounded hover:bg-[#264653]/5 transition-colors font-medium text-center text-xs"
