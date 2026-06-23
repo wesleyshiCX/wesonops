@@ -51,7 +51,7 @@ export default function Home() {
                   Interactive Model
                 </h2>
                 <a
-                  href="https://github.com/your-username/ai-deflection-tco-studio"
+                  href="https://github.com/wesleyshiCX/ai-deflection-tco-studio"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-1 text-[10px] font-semibold text-[#3a2a1a]/40 hover:text-[#264653] transition-colors uppercase tracking-wider"
