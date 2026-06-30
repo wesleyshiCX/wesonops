@@ -53,7 +53,7 @@ decision artifact.
 
 🔗 **Try it:** [https://www.wesonops.com/llm-cost](https://www.wesonops.com/llm-cost) 
 
-![AI Deflection TCO Studio](./docs/AI-deflection-cost-screenshot.png)
+![AI Deflection TCO Studio](/public/docs/AI-deflection-cost-screenshot.png)
 
 ---
 
@@ -74,7 +74,7 @@ which is the whole point in a SOC2 context.
 
 📹 **Walkthrough demo + early access:** [wesonops.com/auditor](https://wesonops.com/auditor) 
 
-![SLA RCA Auditor Architecture](./docs/rca-auditor.png)
+![SLA RCA Auditor Architecture](public/docs/rca-auditor.png)
 
 ---
 
